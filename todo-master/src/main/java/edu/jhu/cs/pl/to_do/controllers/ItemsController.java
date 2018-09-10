@@ -6,7 +6,6 @@ import edu.jhu.cs.pl.to_do.repositories.ItemsRepository;
 import io.javalin.BadRequestResponse;
 import io.javalin.Context;
 import io.javalin.NotFoundResponse;
-
 import java.io.IOException;
 import java.sql.SQLException;
 
