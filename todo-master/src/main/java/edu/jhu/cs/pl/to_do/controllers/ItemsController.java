@@ -28,7 +28,6 @@ public class ItemsController {
             throw new BadRequestResponse();
         item.setDescription(itemParameter.get("description").asText());
         Server.getItemsRepository().update(item);
-        ctx.status(204);
     }
 
     public static void markItemAsDone(Context ctx) throws ItemsRepository.NonExistingItemException, SQLException {

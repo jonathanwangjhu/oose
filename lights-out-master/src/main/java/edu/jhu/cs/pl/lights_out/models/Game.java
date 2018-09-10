@@ -1,20 +1,15 @@
 package edu.jhu.cs.pl.lights_out.models;
 
-public class Game {
-    private int id = 0;
-    private int[][] board = null;
+import java.util.UUID;
 
-    public Game(int id, int[][] board) {
-        this.id = id;
+public class Game {
+    private int[][] board = new int[5][5];
+
+    public Game(int[][] board) {
         this.board = board;
     }
 
     public Game() {
-
-    }
-
-    public int getId() {
-        return id;
     }
 
     public int[][] getBoard() {
