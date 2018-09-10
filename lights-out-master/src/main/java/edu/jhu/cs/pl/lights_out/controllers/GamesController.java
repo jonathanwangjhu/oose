@@ -21,7 +21,7 @@ public class GamesController {
 
 
     public static void getGames(Context ctx) {
-        ctx.json(Server.getGamesRepository().getGames());
+        ctx.json(Server.getGamesRepository().getGame(ctx.pathParam("game-identifier")));
     }
 
     public static void move (Context ctx) throws IOException {
@@ -39,13 +39,13 @@ public class GamesController {
     }
 
     private static Game getGame (Context ctx) {
-        String itemIdentifier;
+        String gameIdentifier;
         try {
-            itemIdentifier = ctx.pathParam("game-identifier");
+            gameIdentifier = ctx.pathParam("game-identifier");
         } catch (NumberFormatException e) {
             throw new NotFoundResponse();
         }
-        return Server.getGamesRepository().getGame(itemIdentifier);
+        return Server.getGamesRepository().getGame(gameIdentifier);
     }
 
 
