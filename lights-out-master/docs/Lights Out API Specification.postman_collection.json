@@ -1,0 +1,1275 @@
+{
+	"info": {
+		"_postman_id": "14b56f78-66f4-4dfb-ab39-8f51c25156b9",
+		"name": "Lights Out API Specification",
+		"description": "This documentation specifies the Lights Out API. Each top-level folder corresponds to an API endpoint.\n\nYou can run the specification in Postman. By default, it requests the reference implementation at `https://oose-lights-out.herokuapp.com`. Use it to explore the Lights Out API, and read the description and examples for each request.\n\nWhen you are ready to start developing your version of the server, run the server in `src/main/java/edu/jhu/cs/pl/lights_out/Server.java`. Import and enable the `Development` Postman **Environment** at `docs/Development.postman_environment.json`. At first the tests will fail because the server is not implemented, but they will start to pass as you progress.\n\nAfter changing the code, **restart** the server instead of **running** it again. In IntelliJ, click on the **Rerun** button (`↻` `⌘R`) on the **Run** panel (`⌘4`) of the server that is already running. Do not try to run the server as you did the first time, because that tries to start a second server and fails (`java.net.BindException: Address already in use`). If the server stores data in memory, as opposed to using a database, then the games are lost on restart and previous `gameIdentifier`s no longer work.\n\nThis specification defines everything the server should do. If something is unclear, follow the reference implementation. After all requests in this specification pass the tests in the **Development** environment, the game should be playable by accessing `http://localhost:7000` with a browser.\n\nThis specification does not include tests for all error cases. Some of them are only described in the request description. You still have to treat the error cases right, because the autograder tests for them.\n\nThe variable `gameIdentifier` is available for every request. It is provided by a **Pre-request script** that runs at the **Collection** level (top level).\n\nYou may add requests if you wish, but do not edit the existing requests, or you risk modifying the existing API and breaking the game.\n\n* * *\n\nEnpoints that create something (for example, **New Game**) must respond with HTTP Status **201 Created**. The **Response Body** must contain the identifier for the entity that was created as a UUID in plain text (not JSON).\n\nEndpoints that retrieve data (for example, **Get Game**) must respond with HTTP Status **200 OK**. The **Response Body** must contain the entity in JSON.\n\nEndpoints that modify data (for example, **Move** and **Cheat**) must respond with HTTP Status **204 No Content**. The **Response Body** is empty, but the state on the server has changed, and can be queried later (for example, with **Get Game**).\n\nIf a request includes a `gameIdentifier` and the server cannot find it, it must respond with HTTP Status **404 Not Found**.\n\nIf a request includes JSON in the **Request Body**, the endpoint specifies the format of that JSON. The server must respond with HTTP Status **400 Bad Request** if the request body is empty or ill-formed JSON, or if there are missing fields, fields with the wrong type (for example, `\"2\"` instead of `2`), null fields, or extra fields.\n\nThe server must also respond with HTTP Status **400 Bad Request** if some pre-requisite is not met, for example, trying to make a move on a coordinate that is out of bounds (for example, `{ \"row\": 5, \"column\": 2 }`), or trying to make a **Move** or **Cheat** on a game that is already over.\n\nIf a request fails for multiple reasons, for example, both the **Request Body** is invalid JSON and the `gameIdentifier` is not found, then the server may respond with either error HTTP Status (400 or 404).\n\n* * *\n\nUse Javalin to parse and generate JSON, do not do it by manipulating strings. Handle the `com.fasterxml.jackson.core.JsonProcessingException` exception.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "New Game",
+			"item": [
+				{
+					"name": "Successful",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d4054cd4-c60c-4ed4-ac2a-3f910d470820",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));",
+									"",
+									"pm.test(\"Content-Type is ‘text/plain’\", () => pm.response.to.have.header(\"Content-Type\", \"text/plain\"));",
+									"",
+									"// Source: https://stackoverflow.com/questions/7905929/how-to-test-valid-uuid-guid",
+									"pm.test(\"Body is an UUID\", () => pm.expect(pm.response.text()).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i));",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/games",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"games"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Successful",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{host}}/games",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"games"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "36",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 21 Aug 2018 15:49:33 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "b80ebdb7-9b87-4a10-a2ed-52225cde3ec8"
+						}
+					]
+				}
+			],
+			"description": "Called when the game starts, and when the player clicks on **New Game**. First, the server creates a new random solvable Lights Out game. Games are not predictable or picked from a pool of known starting games, but truly random. Not all Lights Out boards are solvable (only a quarter of them are), so simply letting each light be randomly on or off does not work.\n\nThe server then assigns an Universally Unique Identifier (UUID), `gameIdentifier`, to the generated game (Java includes a class for generating UUIDs). The server saves the game indexed by the `gameIdentifier` so it can find it in subsequent requests. The server returns the `gameIdentifier` (not the game board, see **Get Game**) as plain text (not JSON). The client holds on to the `gameIdentifier` and provides it in subsequent requests.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "061f9f46-830f-4e64-83b1-cd3c15819a2d",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "03b2c8c8-1043-4805-8a14-892c9e8d0be9",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Get Game",
+			"item": [
+				{
+					"name": "Successful",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "7eea6409-18bb-4c68-8567-bb89404c8f7a",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "df7f1832-50be-4d9d-9d3e-f43083a0daeb",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"",
+									"pm.test(\"Content-Type is ‘application/json’\", () => pm.response.to.have.header(\"Content-Type\", \"application/json\"));",
+									"",
+									"pm.test(\"Response contains a board\", () => {",
+									"    const game = pm.response.json();",
+									"    pm.expect(game).to.an(\"object\").that.has.all.keys(\"board\");",
+									"    const board = game.board;",
+									"    pm.expect(board).to.be.an(\"array\").that.has.lengthOf(5);",
+									"    for (const row of board) {",
+									"        pm.expect(row).to.be.an(\"array\").that.has.lengthOf(5);",
+									"        for (const light of row) {",
+									"            pm.expect(light).to.be.oneOf([0, 1]);",
+									"        }",
+									"    }",
+									"});",
+									"",
+									"// Source: Marlow Anderson, and Todd Feil. 1998. “Turning Lights Out with Linear Algebra.” Mathematics Magazine 71 (4): 300–303. https://doi.org/10.2307/2690705.",
+									"pm.test(\"Board is solvable\", () => {",
+									"    const board = pm.response.json().board;",
+									"    const isPerpendicular = (m1, m2) => {",
+									"        let dotProduct = 0;",
+									"        for (const row in m1) {",
+									"            for (const column in m1[row]) {",
+									"                dotProduct = (dotProduct + m1[row][column] * m2[row][column]) % 2;",
+									"            }",
+									"        }",
+									"        return dotProduct === 0;",
+									"    };",
+									"    const n1 = [",
+									"        [0, 1, 1, 1, 0],",
+									"        [1, 0, 1, 0, 1],",
+									"        [1, 1, 0, 1, 1],",
+									"        [1, 0, 1, 0, 1],",
+									"        [0, 1, 1, 1, 0]",
+									"    ];",
+									"    const n2 = [",
+									"        [1, 0, 1, 0, 1],",
+									"        [1, 0, 1, 0, 1],",
+									"        [0, 0, 0, 0, 0],",
+									"        [1, 0, 1, 0, 1],",
+									"        [1, 0, 1, 0, 1]",
+									"    ];",
+									"    pm.expect(isPerpendicular(board, n1) && isPerpendicular(board, n2)).to.be.true;",
+									"});",
+									"",
+									"const board = pm.response.json().board;",
+									"const trials = 20;",
+									"const step = boards => {",
+									"    if (boards.length === trials) {",
+									"        pm.test(\"Board is random\", () => {",
+									"            for (const i in boards) {",
+									"                for (const j in boards) {",
+									"                    if (i !== j) pm.expect(boards[i]).to.not.deep.equal(boards[j]);",
+									"                }",
+									"            }",
+									"        });",
+									"    }",
+									"    else {",
+									"        pm.sendRequest(",
+									"            { url: `${pm.variables.get(\"host\")}/games`, method: \"POST\" },",
+									"            (err, response) =>",
+									"                pm.sendRequest(",
+									"                    `${pm.variables.get(\"host\")}/games/${response.text()}`,",
+									"                    (err, response) => step(boards.concat([response.json().board]))",
+									"                )",
+									"        );",
+									"    }",
+									"};",
+									"step([board]);",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/games/{{gameIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"games",
+								"{{gameIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Successful",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{host}}/games/{{gameIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"games",
+										"{{gameIdentifier}}"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "71",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 23 Aug 2018 17:26:54 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "{\"board\":[[0,0,0,0,1],[1,0,0,0,0],[0,1,0,0,1],[1,1,0,0,0],[0,1,0,1,1]]}"
+						}
+					]
+				}
+			],
+			"description": "Called repeatedly to refresh the player’s view of the game board. The server returns the state of Lights Out game identified by `gameIdentifier` as a JSON object containing a list of lists:\n\n```\n{\n\t\"board\":\n\t[\n\t  [<light-0-0>, <light-0-1>, <light-0-2>, <light-0-3>, <light-0-4>],\n\t  [<light-1-0>, <light-1-1>, <light-1-2>, <light-1-3>, <light-1-4>],\n\t  [<light-2-0>, <light-2-1>, <light-2-2>, <light-2-3>, <light-2-4>],\n\t  [<light-3-0>, <light-3-1>, <light-3-2>, <light-3-3>, <light-3-4>],\n\t  [<light-4-0>, <light-4-1>, <light-4-2>, <light-4-3>, <light-4-4>]\n\t]\n}\n```\n\nEach element represents one light, and may be either `0` (off) or `1` (on).",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "4c5f725b-9b0f-4c5f-855b-6ea9ebf0f625",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "0e700287-6cc0-4e2e-bafd-d2d2a24f2d4e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Move",
+			"item": [
+				{
+					"name": "Successful",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "26f5427b-a062-437b-8ff7-9a090605c227",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));",
+									"",
+									"pm.sendRequest(`${pm.variables.get(\"host\")}/games/${pm.variables.get(\"gameIdentifier\")}`, (err, response) => {",
+									"    const boardBeforeMove = JSON.parse(pm.variables.get(\"boardBeforeMove\"));",
+									"    const boardAfterMove = response.json().board;",
+									"    const difference = [",
+									"        [0, 0, 0, 0, 0],",
+									"        [0, 0, 0, 0, 0],",
+									"        [0, 0, 0, 0, 0],",
+									"        [0, 0, 0, 0, 0],",
+									"        [0, 0, 0, 0, 0]",
+									"    ];",
+									"    for (const row in boardBeforeMove) {",
+									"        for (const column in boardBeforeMove[row]) {",
+									"            difference[row][column] = boardBeforeMove[row][column] ^ boardAfterMove[row][column];",
+									"        }",
+									"    }",
+									"    pm.test(\"Board is modified\", () => {",
+									"        pm.expect(difference).to.deep.equal([",
+									"            [0, 0, 0, 0, 0],",
+									"            [0, 0, 1, 0, 0],",
+									"            [0, 1, 1, 1, 0],",
+									"            [0, 0, 1, 0, 0],",
+									"            [0, 0, 0, 0, 0]",
+									"        ]);",
+									"    });",
+									"});"
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "42095123-24a4-4366-b194-f860af21f518",
+								"type": "text/javascript",
+								"exec": [
+									"pm.sendRequest(`${pm.variables.get(\"host\")}/games/${pm.variables.get(\"gameIdentifier\")}`, (err, response) => pm.variables.set(\"boardBeforeMove\", JSON.stringify(response.json().board)));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"row\": 2, \"column\": 2 }"
+						},
+						"url": {
+							"raw": "{{host}}/games/{{gameIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"games",
+								"{{gameIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Successful",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"row\": 2, \"column\": 2 }"
+								},
+								"url": {
+									"raw": "{{host}}/games/{{gameIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"games",
+										"{{gameIdentifier}}"
+									]
+								}
+							},
+							"status": "No Content",
+							"code": 204,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 23 Aug 2018 17:18:16 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "Empty Request Body",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "70099873-03f2-44cb-b67d-28b70e3909a4",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));",
+									""
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5f698ed7-1d16-472f-b4dc-c5d6edb4cebd",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/games/{{gameIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"games",
+								"{{gameIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Empty Request Body",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{host}}/games/{{gameIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"games",
+										"{{gameIdentifier}}"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "11",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 23 Aug 2018 17:18:35 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "Bad request"
+						}
+					]
+				},
+				{
+					"name": "Ill-Formed JSON",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "70099873-03f2-44cb-b67d-28b70e3909a4",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));",
+									""
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5f698ed7-1d16-472f-b4dc-c5d6edb4cebd",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"row\": 2,"
+						},
+						"url": {
+							"raw": "{{host}}/games/{{gameIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"games",
+								"{{gameIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Ill-Formed JSON",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"row\": 2,"
+								},
+								"url": {
+									"raw": "{{host}}/games/{{gameIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"games",
+										"{{gameIdentifier}}"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "0",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 23 Aug 2018 17:18:40 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "Wrong Type",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "70099873-03f2-44cb-b67d-28b70e3909a4",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));",
+									""
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5f698ed7-1d16-472f-b4dc-c5d6edb4cebd",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[]"
+						},
+						"url": {
+							"raw": "{{host}}/games/{{gameIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"games",
+								"{{gameIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Wrong Type",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[]"
+								},
+								"url": {
+									"raw": "{{host}}/games/{{gameIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"games",
+										"{{gameIdentifier}}"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "11",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 23 Aug 2018 17:18:44 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "Bad request"
+						}
+					]
+				},
+				{
+					"name": "Extra Fields",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "70099873-03f2-44cb-b67d-28b70e3909a4",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));",
+									""
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5f698ed7-1d16-472f-b4dc-c5d6edb4cebd",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"row\": 2, \"column\": 2, \"extraField\": \"Error\" }"
+						},
+						"url": {
+							"raw": "{{host}}/games/{{gameIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"games",
+								"{{gameIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Extra Fields",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"row\": 2, \"column\": 2, \"extraField\": \"Error\" }"
+								},
+								"url": {
+									"raw": "{{host}}/games/{{gameIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"games",
+										"{{gameIdentifier}}"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "11",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 23 Aug 2018 17:18:48 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "Bad request"
+						}
+					]
+				},
+				{
+					"name": "Non-Existing Game",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a0c9c51c-1093-4b7e-908e-7f1636b1b86f",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));"
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "e617743a-0416-476b-aba6-ce2ae7b3b758",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"row\": 2, \"column\": 2 }"
+						},
+						"url": {
+							"raw": "{{host}}/games/non-existing-game",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"games",
+								"non-existing-game"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Non-Existing Game",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"row\": 2, \"column\": 2 }"
+								},
+								"url": {
+									"raw": "{{host}}/games/non-existing-game",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"games",
+										"non-existing-game"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "0",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 23 Aug 2018 17:18:53 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "Game Over",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6a18d988-d13a-4708-a842-2040045ae244",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));"
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "dc0f3dfc-6545-4716-904f-d45a8148ad77",
+								"type": "text/javascript",
+								"exec": [
+									"pm.sendRequest({",
+									"    url: `${pm.variables.get(\"host\")}/games/${pm.variables.get(\"gameIdentifier\")}/cheat`,",
+									"    method: \"PUT\"",
+									"}, (err, response) =>",
+									"    pm.sendRequest({",
+									"        url: `${pm.variables.get(\"host\")}/games/${pm.variables.get(\"gameIdentifier\")}`,",
+									"        method: \"PUT\",",
+									"        body: JSON.stringify({row: 2, column: 2 })",
+									"    })",
+									");"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"row\": 2, \"column\": 2 }"
+						},
+						"url": {
+							"raw": "{{host}}/games/{{gameIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"games",
+								"{{gameIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Game Over",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"row\": 2, \"column\": 2 }"
+								},
+								"url": {
+									"raw": "{{host}}/games/{{gameIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"games",
+										"{{gameIdentifier}}"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "0",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 23 Aug 2018 17:18:58 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				}
+			],
+			"description": "Called when the player presses a light. Modifies the game identified by `gameIdentifier`, toggling the lights at coordinate (`row`, `column`) and its immediate neighbors on the top, right, bottom, and left (if any). The server only changes the game’s state internally, but does not return anything to the client. To see the new board, the client requests the **Get Game** endpoint.\n\nThe coordinate is provided in the HTTP Request Body as a JSON object; for example, the center light corresponds to `{ \"row\": 2, \"column\": 2 }`. Coordinates must be in the range `[0-4]` (inclusive); any other value is out of bounds and must result in HTTP Status **400 Bad Request**.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "e7c77308-1b2e-4834-bba2-718164f6f560",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "a78fad3e-8083-4928-aae5-08513d409a13",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Cheat",
+			"item": [
+				{
+					"name": "Successful",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ad8012e6-0b63-4a7f-a063-fba7f5010479",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));",
+									"",
+									"pm.sendRequest(`${pm.variables.get(\"host\")}/games/${pm.variables.get(\"gameIdentifier\")}`, (err, response) => {",
+									"    pm.test(\"Board is one move away from winning\", () => {",
+									"        pm.expect(response.json().board).to.deep.equal([",
+									"            [0, 0, 0, 0, 0],",
+									"            [0, 0, 1, 0, 0],",
+									"            [0, 1, 1, 1, 0],",
+									"            [0, 0, 1, 0, 0],",
+									"            [0, 0, 0, 0, 0]",
+									"        ]);",
+									"    });",
+									"});"
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00dacefa-f4c1-455a-a610-e9d9c33a03d0",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/games/{{gameIdentifier}}/cheat",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"games",
+								"{{gameIdentifier}}",
+								"cheat"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Successful",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{host}}/games/{{gameIdentifier}}/cheat",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"games",
+										"{{gameIdentifier}}",
+										"cheat"
+									]
+								}
+							},
+							"status": "No Content",
+							"code": 204,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 23 Aug 2018 17:19:27 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				}
+			],
+			"description": "Called with the **Cheat** button. Changes the game so it is one move away from winning by pressing the center light:\n\n```\n[\n  [0, 0, 0, 0, 0],\n  [0, 0, 1, 0, 0],\n  [0, 1, 1, 1, 0],\n  [0, 0, 1, 0, 0],\n  [0, 0, 0, 0, 0]\n]\n```\n\nSimilar to the **Move** endpoint, the server only changes the game’s state internally, but does not return anything to the client. To see the new board, the client requests the **Get Game** endpoint."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "f27abde4-f0fd-4e92-a4bb-15af81aedaee",
+				"type": "text/javascript",
+				"exec": [
+					"pm.sendRequest({ url: `${pm.variables.get(\"host\")}/games`, method: \"POST\" }, (err, response) => pm.variables.set(\"gameIdentifier\", response.text()));"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "4005b12a-5b86-4d6d-9dd4-a383584796ed",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "aab3c098-74b1-48e5-9f62-28d84eef10e3",
+			"key": "host",
+			"value": "https://oose-lights-out.herokuapp.com",
+			"type": "string"
+		}
+	]
+}

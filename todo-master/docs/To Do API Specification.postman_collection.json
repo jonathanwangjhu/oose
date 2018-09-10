@@ -1,0 +1,1366 @@
+{
+	"info": {
+		"_postman_id": "fc729d0f-373a-4a23-8667-67b7b06ba60d",
+		"name": "To Do API Specification",
+		"description": "This documentation specifies the To Do API. Each top-level folder corresponds to an API endpoint.\n\nYou can run the specification in Postman. By default, it requests the reference implementation at `https://oose-to-do.herokuapp.com`. Use it to explore the To Do API, and read the description and examples for each request.\n\nWhen you are ready to run the server on your machine, open the project in IntelliJ and run `src/main/java/edu/jhu/cs/pl/lights_out/Server.java`. Import and enable the `Development` Postman **Environment** at `docs/Development.postman_environment.json`.\n\nIf you change the code, **restart** the server instead of **running** it again. In IntelliJ, click on the **Rerun** button (`↻` `⌘R`) on the **Run** panel (`⌘4`) of the server that is already running. Do not try to run the server as you did the first time, because that tries to start a second server and fails (`java.net.BindException: Address already in use`).\n\nThis specification defines everything the server should do. All requests in this specification should pass all the tests in the **Development** environment, and the application should be available by accessing `http://localhost:7000` with a browser.\n\nThe variable `itemIdentifier` is available for every request. It is provided by a **Pre-request script** that runs at the **Collection** level (top level).\n\nYou may add requests if you wish to explore more. If you want to base a new request on an existing one, **Duplicate** it (`⌘D`). Avoid editing the existing requests, or you risk modifying the existing API and breaking the application.\n\n* * *\n\nEnpoints that create something (for example, **New Item**) must respond with HTTP Status **201 Created**.\n\nEndpoints that retrieve data (for example, **Get Items**) must respond with HTTP Status **200 OK**. The **Response Body** must contain the entities in JSON.\n\nEndpoints that modify data (for example, **Edit Item Description** and **Mark Item as Done**) must respond with HTTP Status **204 No Content**. The **Response Body** is empty, but the state on the server has changed, and can be queried later (for example, with **Get Items**).\n\nIf a request includes a `itemIdentifier` and the server cannot find it, it must respond with HTTP Status **404 Not Found**.\n\nIf a request includes JSON in the **Request Body**, the endpoint specifies the format of that JSON. The server must respond with HTTP Status **400 Bad Request** if the request body is empty or ill-formed JSON, or if there are missing fields, fields with the wrong type (for example, `\"2\"` instead of `2`), null fields, or extra fields.\n\nIf a request fails for multiple reasons, for example, both the **Request Body** is invalid JSON and the `itemIdentifier` is not found, then the server may respond with either error HTTP Status (400 or 404).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "New Item",
+			"item": [
+				{
+					"name": "Successful",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a675cf23-c2a4-44ea-b2ed-e03770a30fbd",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));",
+									"",
+									"pm.sendRequest(`${pm.variables.get(\"host\")}/items`, (err, response) =>",
+									"    pm.test(\"Create a To Do item\", () => {",
+									"        pm.expect(response.json()).to.have.lengthOf(JSON.parse(pm.variables.get(\"itemsBefore\")).length + 1);",
+									"    })",
+									");",
+									""
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "81a86402-ff6c-4c6c-80d0-b7924ea1959f",
+								"type": "text/javascript",
+								"exec": [
+									"pm.sendRequest(`${pm.variables.get(\"host\")}/items`, (err, response) => pm.variables.set(\"itemsBefore\", response.text()));",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/items",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"items"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Successful",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{host}}/items",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"items"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "0",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 Aug 2018 16:47:55 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				}
+			],
+			"description": "Called when the user clicks on the `+` at the bottom of the To Do list. The server creates a new empty `Item` and saves it, and the response is empty. Use other endpoints to read, update, and delete the new item, for example, **Get Items**, **Edit Item Description** and **Mark Item as Done**."
+		},
+		{
+			"name": "Get Items",
+			"item": [
+				{
+					"name": "Successful",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7288d801-90b1-4380-9540-16110578cb7d",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"",
+									"pm.test(\"Content-Type is ‘application/json’\", () => pm.response.to.have.header(\"Content-Type\", \"application/json\"));",
+									"",
+									"pm.test(\"Response is a To Do list\", () => {",
+									"    const list = pm.response.json();",
+									"    pm.expect(list).to.be.an(\"array\").that.is.not.empty;",
+									"    for (const item of list) {",
+									"        pm.expect(item).to.an(\"object\").that.has.all.keys(\"id\", \"description\");",
+									"        pm.expect(item.id).to.be.a(\"number\");",
+									"        pm.expect(item.description).to.be.a(\"string\");",
+									"    }",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "{{host}}/items",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"items"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Successful",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"body": {},
+								"url": {
+									"raw": "{{host}}/items",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"items"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "79",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 Aug 2018 16:48:01 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "[{\"id\":1,\"description\":\"\"},{\"id\":2,\"description\":\"\"},{\"id\":3,\"description\":\"\"}]"
+						}
+					]
+				}
+			],
+			"description": "Called repeatedly to refresh the user’s view of the To Do list. The server returns the To Do items as a JSON list containing objects:\n\n```\n[\n\t{\"id\": 2, \"description\": \"Read API Specification\"},\n\t{\"id\": 5, \"description\": \"Read Server Code\"}\n]\n```"
+		},
+		{
+			"name": "Edit Item Description",
+			"item": [
+				{
+					"name": "Successful",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "879d1c08-1725-456f-b579-1e6ac28e9b6d",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));",
+									"",
+									"pm.sendRequest(`${pm.variables.get(\"host\")}/items`, (err, response) =>",
+									"    pm.test(\"Edit the To Do item\", () => {",
+									"        const item = _.find(response.json(), item => item.id === pm.variables.get(\"itemIdentifier\"));",
+									"        pm.expect(item.description).to.equal(\"Implement API\");",
+									"    })",
+									");",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"description\": \"Implement API\" }"
+						},
+						"url": {
+							"raw": "{{host}}/items/{{itemIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"items",
+								"{{itemIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Successful",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": false
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"description\": \"Implement API\" }"
+								},
+								"url": {
+									"raw": "{{host}}/items/{{itemIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"items",
+										"{{itemIdentifier}}"
+									]
+								}
+							},
+							"status": "No Content",
+							"code": 204,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 Aug 2018 16:48:06 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "Missing Field",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7897d5de-75c5-4163-89df-acdf574d21c4",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ }"
+						},
+						"url": {
+							"raw": "{{host}}/items/{{itemIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"items",
+								"{{itemIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Missing Field",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": false
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ }"
+								},
+								"url": {
+									"raw": "{{host}}/items/{{itemIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"items",
+										"{{itemIdentifier}}"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "11",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 Aug 2018 16:48:12 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "Bad request"
+						}
+					]
+				},
+				{
+					"name": "Null Field",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7897d5de-75c5-4163-89df-acdf574d21c4",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"description\": null }"
+						},
+						"url": {
+							"raw": "{{host}}/items/{{itemIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"items",
+								"{{itemIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Null Field",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": false
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"description\": null }"
+								},
+								"url": {
+									"raw": "{{host}}/items/{{itemIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"items",
+										"{{itemIdentifier}}"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "11",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 Aug 2018 16:48:18 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "Bad request"
+						}
+					]
+				},
+				{
+					"name": "Wrong Field Type",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7897d5de-75c5-4163-89df-acdf574d21c4",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"description\": 2 }"
+						},
+						"url": {
+							"raw": "{{host}}/items/{{itemIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"items",
+								"{{itemIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Wrong Field Type",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": false
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"description\": 2 }"
+								},
+								"url": {
+									"raw": "{{host}}/items/{{itemIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"items",
+										"{{itemIdentifier}}"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "11",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 Aug 2018 16:48:23 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "Bad request"
+						}
+					]
+				},
+				{
+					"name": "Empty Request Body",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7897d5de-75c5-4163-89df-acdf574d21c4",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/items/{{itemIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"items",
+								"{{itemIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Empty Request Body",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": false
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{host}}/items/{{itemIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"items",
+										"{{itemIdentifier}}"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "11",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 Aug 2018 16:48:28 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "Bad request"
+						}
+					]
+				},
+				{
+					"name": "Ill-Formed JSON",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7897d5de-75c5-4163-89df-acdf574d21c4",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"description\":"
+						},
+						"url": {
+							"raw": "{{host}}/items/{{itemIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"items",
+								"{{itemIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Ill-Formed JSON",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": false
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"description\":"
+								},
+								"url": {
+									"raw": "{{host}}/items/{{itemIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"items",
+										"{{itemIdentifier}}"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "0",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 Aug 2018 16:48:33 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "Wrong Type",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7897d5de-75c5-4163-89df-acdf574d21c4",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[]"
+						},
+						"url": {
+							"raw": "{{host}}/items/{{itemIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"items",
+								"{{itemIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Wrong Type",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": false
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[]"
+								},
+								"url": {
+									"raw": "{{host}}/items/{{itemIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"items",
+										"{{itemIdentifier}}"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "11",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 Aug 2018 16:48:39 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "Bad request"
+						}
+					]
+				},
+				{
+					"name": "Extra Fields",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7897d5de-75c5-4163-89df-acdf574d21c4",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"description\": \"Implement API\", \"extraField\": \"Error\" }"
+						},
+						"url": {
+							"raw": "{{host}}/items/{{itemIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"items",
+								"{{itemIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Extra Fields",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": false
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"description\": \"Implement API\", \"extraField\": \"Error\" }"
+								},
+								"url": {
+									"raw": "{{host}}/items/{{itemIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"items",
+										"{{itemIdentifier}}"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "11",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 Aug 2018 16:48:44 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "Bad request"
+						}
+					]
+				},
+				{
+					"name": "Non-Existing Item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d6ac2f34-0590-4915-a908-1968b82daab0",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"description\": \"Implement API\" }"
+						},
+						"url": {
+							"raw": "{{host}}/items/non-existing-item",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"items",
+								"non-existing-item"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Non-Existing Item",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": false
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"description\": \"Implement API\" }"
+								},
+								"url": {
+									"raw": "{{host}}/items/non-existing-item",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"items",
+										"non-existing-item"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "9",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 Aug 2018 16:48:50 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "Not found"
+						}
+					]
+				}
+			],
+			"description": "Called when the user edits an item description. Updates the To Do item on the server, and responds with an empty body. Use the **Get Items** endpoint to see the modified item. The response body must contain a JSON object with the new `description`, for example:\n\n```\n{ \"description\": \"Implement API\" }\n```",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "54279e40-3dce-4224-9c5b-b055cfa0693b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "a6bf8cc4-702f-4914-822b-b2e5e2bd0c67",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Mark Item as Done",
+			"item": [
+				{
+					"name": "Successful",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "22a7ce41-099f-4cbe-9298-7f10ac888942",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));",
+									"",
+									"pm.sendRequest(`${pm.variables.get(\"host\")}/items`, (err, response) =>",
+									"    pm.test(\"Delete the To Do item\", () => {",
+									"        pm.expect(_.find(response.json(), item => item.id === pm.variables.get(\"itemIdentifier\"))).to.be.undefined;",
+									"    })",
+									");",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/items/{{itemIdentifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"items",
+								"{{itemIdentifier}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Successful",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{host}}/items/{{itemIdentifier}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"items",
+										"{{itemIdentifier}}"
+									]
+								}
+							},
+							"status": "No Content",
+							"code": 204,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 Aug 2018 16:48:56 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "Non-Existing Item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d6ac2f34-0590-4915-a908-1968b82daab0",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/items/non-existing-item",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"items",
+								"non-existing-item"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Non-Existing Item",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{host}}/items/non-existing-item",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"items",
+										"non-existing-item"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "9",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 Aug 2018 16:49:05 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Server",
+									"value": "Javalin",
+									"name": "Server",
+									"description": "A name for the server"
+								}
+							],
+							"cookie": [],
+							"body": "Not found"
+						}
+					]
+				}
+			],
+			"description": "Called when the user marks an item as done, deleting it from the list. The server responds with an empty response body; use the **Get Items** endpoint to check that the item was removed.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "1ca2b4e0-12ea-4046-b982-eb41ffdce47d",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "f5b6c4b4-5362-4ea5-95eb-2c4cb6ae9986",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "c7abb2d8-cae5-4392-9bd7-6d5e8a12f057",
+				"type": "text/javascript",
+				"exec": [
+					"pm.sendRequest({ url: `${pm.variables.get(\"host\")}/items`, method: \"POST\" }, (err, response) =>",
+					"    pm.sendRequest(`${pm.variables.get(\"host\")}/items`, (err, response) =>",
+					"        pm.variables.set(\"itemIdentifier\", _.last(response.json()).id)",
+					"    )",
+					");"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "ec8b7405-5710-44ac-8227-ee64499da7cf",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "a4725caf-161a-4d77-ab25-2c69cc5325be",
+			"key": "host",
+			"value": "https://oose-to-do.herokuapp.com",
+			"type": "string"
+		}
+	]
+}

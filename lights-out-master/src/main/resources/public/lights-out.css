@@ -1,0 +1,29 @@
+@font-face {
+    font-family: "Exo 2";
+    font-style: normal;
+    font-weight: normal;
+    font-stretch: normal;
+    src: url("/Exo2-Regular.otf") format("opentype");
+}
+
+@font-face {
+    font-family: "Exo 2";
+    font-style: normal;
+    font-weight: bold;
+    font-stretch: normal;
+    src: url("/Exo2-Bold.otf") format("opentype");
+}
+
+body {
+    background-color: #fdf6e3;
+    text-align: center;
+}
+
+svg {
+    max-width: 100%;
+    height: auto;
+}
+
+rect {
+    transition: fill 0.2s;
+}
