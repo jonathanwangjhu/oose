@@ -25,12 +25,14 @@ public class GamesController {
     }
 
     public static void move (Context ctx) throws IOException {
-        var item = getGame(ctx);
+        var game = getGame(ctx);
         var moveParameter = Server.getJson().readTree(ctx.body());
-        System.out.println(moveParameter);
         if (moveParameter == null || moveParameter.size() != 2)
             throw new BadRequestResponse();
-        Server.getGamesRepository().update(item);
+        int row = moveParameter.get("row").asInt();
+        int col = moveParameter.get("column").asInt();
+        game.move(row, col);
+        Server.getGamesRepository().update(game);
         ctx.status(204);
     }
 

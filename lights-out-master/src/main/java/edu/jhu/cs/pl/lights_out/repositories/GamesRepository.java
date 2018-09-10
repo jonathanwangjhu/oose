@@ -16,7 +16,7 @@ public class GamesRepository {
     public String create(Game game) {
         UUID uuid = UUID.randomUUID();
         for (int i = 0; i < rand(5, 20); i++) {
-            move(rand(0, 4), rand(0, 4), game);
+            game.move(rand(0, 4), rand(0, 4));
         }
         database.put(uuid, game);
         for (int i = 0; i < 5; i++) {
@@ -49,12 +49,5 @@ public class GamesRepository {
         return new Random().nextInt(max - min + 1) + min;
     }
 
-    private void move(int x, int y, Game game) {
-        int[][] board = game.getBoard();
-        if (board[x][y] == 0) {
-            board[x][y] = 1;
-        } else {
-            board[x][y] = 0;
-        }
-    }
+
 }
