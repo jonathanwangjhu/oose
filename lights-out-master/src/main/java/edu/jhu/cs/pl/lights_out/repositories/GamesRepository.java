@@ -19,12 +19,6 @@ public class GamesRepository {
             game.move(rand(0, 4), rand(0, 4));
         }
         database.put(uuid, game);
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 5; j++) {
-                System.out.print(game.getBoard()[i][j]);
-            }
-            System.out.println("");
-        }
         return uuid.toString();
     }
 
@@ -37,8 +31,7 @@ public class GamesRepository {
     }
 
     public Game getGame(String gameIdentifier) {
-        Game result = database.get(UUID.fromString(gameIdentifier));
-        return result;
+        return database.get(UUID.fromString(gameIdentifier));
     }
 
     public void update(Game game) {

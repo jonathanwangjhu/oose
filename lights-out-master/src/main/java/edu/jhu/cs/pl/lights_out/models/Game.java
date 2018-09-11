@@ -19,7 +19,7 @@ public class Game {
         this.board = board;
     }
 
-    public void move (int x, int y) {
+    public void move(int x, int y) {
         for (int i = -1; i <= 1; i++) {
             swap(x + i, y);
         }
@@ -27,7 +27,16 @@ public class Game {
         swap(x, y + 1);
     }
 
-    private void swap (int x, int y) {
+    public void cheat() {
+        board = new int[5][5];
+        board[1][2] = 1;
+        board[2][1] = 1;
+        board[2][2] = 1;
+        board[2][3] = 1;
+        board[3][2] = 1;
+    }
+
+    private void swap(int x, int y) {
         if (!(x > 4 || x < 0 || y > 4 || y < 0)) {
             if (board[x][y] == 0) {
                 board[x][y] = 1;
