@@ -19,7 +19,7 @@ public class GamesController {
     }
 
 
-    public static void getGames(Context ctx) {
+    public static void getGames(Context ctx) throws NotFoundResponse {
         try {
             ctx.json(Server.getGamesRepository().getGame(ctx.pathParam("game-identifier")));
         } catch (IllegalArgumentException n) {
@@ -28,7 +28,7 @@ public class GamesController {
         }
     }
 
-    public static void move(Context ctx) throws IOException {
+    public static void move(Context ctx) throws BadRequestResponse, IOException {
         var game = getGame(ctx);
         if (game == null) {
             ctx.status(404);

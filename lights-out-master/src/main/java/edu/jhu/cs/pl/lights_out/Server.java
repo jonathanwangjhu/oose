@@ -6,26 +6,20 @@ import edu.jhu.cs.pl.lights_out.repositories.GamesRepository;
 import io.javalin.Javalin;
 import io.javalin.JavalinEvent;
 import io.javalin.staticfiles.Location;
-import org.postgresql.ds.PGSimpleDataSource;
-import org.sqlite.SQLiteDataSource;
-
-import javax.sql.DataSource;
-import java.sql.SQLException;
 
 import edu.jhu.cs.pl.lights_out.controllers.GamesController;
-import edu.jhu.cs.pl.lights_out.repositories.GamesRepository;
 import java.util.HashMap;
 import java.util.UUID;
 
 import static io.javalin.apibuilder.ApiBuilder.*;
-import static io.javalin.apibuilder.ApiBuilder.delete;
+
 
 public class Server {
     private static HashMap database = new HashMap<UUID, Game>();
     private static GamesRepository gamesRepository;
     private static ObjectMapper json = new ObjectMapper();
 
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) {
         Javalin.create()
 
                 .routes(() -> {
