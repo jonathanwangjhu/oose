@@ -3,14 +3,12 @@ package edu.jhu.cs.pl.lights_out.controllers;
 import com.fasterxml.jackson.core.JsonParseException;
 import edu.jhu.cs.pl.lights_out.Server;
 import edu.jhu.cs.pl.lights_out.models.Game;
-import edu.jhu.cs.pl.lights_out.repositories.GamesRepository;
 
 import io.javalin.BadRequestResponse;
 import io.javalin.Context;
 import io.javalin.NotFoundResponse;
 
 import java.io.IOException;
-import java.util.UUID;
 
 
 public class GamesController {
@@ -22,23 +20,45 @@ public class GamesController {
 
 
     public static void getGames(Context ctx) {
-        ctx.json(Server.getGamesRepository().getGame(ctx.pathParam("game-identifier")));
+        try {
+            ctx.json(Server.getGamesRepository().getGame(ctx.pathParam("game-identifier")));
+        } catch (IllegalArgumentException n) {
+            ctx.status(404);
+            throw new NotFoundResponse();
+        }
     }
 
-    public static void move (Context ctx) throws IOException {
+    public static void move(Context ctx) throws IOException {
         var game = getGame(ctx);
         if (game == null) {
             ctx.status(404);
         } else if (!gameEnded(game)) {
             try {
                 var moveParameter = Server.getJson().readTree(ctx.body());
-                if (moveParameter == null || moveParameter.size() != 2)
+                if (moveParameter == null || moveParameter.size() != 2) {
+                    ctx.status(400);
                     throw new BadRequestResponse();
-                int row = moveParameter.get("row").asInt();
-                int col = moveParameter.get("column").asInt();
-             game.move(row, col);
-             Server.getGamesRepository().update(game);
-             ctx.status(204);
+                }
+
+                String rowCheck = moveParameter.get("row").toString();
+                String colCheck = moveParameter.get("column").toString();
+
+                int row;
+                int col;
+                try {
+                    row = Integer.parseInt(rowCheck);
+                    col = Integer.parseInt(colCheck);
+                } catch (NumberFormatException n) {
+                    ctx.status(400);
+                    throw new BadRequestResponse();
+                }
+
+                if (row > 4 || col > 4 || row < 0 || col < 0) {
+                    ctx.status(400);
+                    return;
+                }
+                game.move(row, col);
+                ctx.status(204);
             } catch (JsonParseException j) {
                 ctx.status(400);
             }
@@ -48,7 +68,7 @@ public class GamesController {
 
     }
 
-    public static void cheat (Context ctx) {
+    public static void cheat(Context ctx) {
         var game = getGame(ctx);
         if (game == null) {
             ctx.status(404);
@@ -60,7 +80,7 @@ public class GamesController {
         }
     }
 
-    private static Game getGame (Context ctx) {
+    private static Game getGame(Context ctx) throws NotFoundResponse {
         String gameIdentifier;
         try {
             gameIdentifier = ctx.pathParam("game-identifier");
@@ -68,17 +88,16 @@ public class GamesController {
             ctx.status(404);
             throw new NotFoundResponse();
         }
-        //return Server.getGamesRepository().getGame(gameIdentifier);
         try {
             Game result = Server.getGamesRepository().getGame(gameIdentifier);
             return result;
         } catch (IllegalArgumentException e) {
             ctx.status(404);
+            throw new NotFoundResponse();
         }
-        return null;
     }
 
-    private static boolean gameEnded (Game game) {
+    private static boolean gameEnded(Game game) {
         int ones = 0;
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
@@ -92,6 +111,5 @@ public class GamesController {
         }
         return false;
     }
-
 
 }

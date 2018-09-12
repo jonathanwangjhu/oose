@@ -22,20 +22,8 @@ public class GamesRepository {
         return uuid.toString();
     }
 
-    public HashMap<UUID, Game> getGames() {
-        HashMap<UUID, Game> games = new HashMap<UUID, Game>();
-        for (UUID key : database.keySet()){
-            games.put(key, database.get(key));
-        }
-        return games;
-    }
-
     public Game getGame(String gameIdentifier) {
         return database.get(UUID.fromString(gameIdentifier));
-    }
-
-    public void update(Game game) {
-        //database.put()
     }
 
     private int rand(int min, int max) {
