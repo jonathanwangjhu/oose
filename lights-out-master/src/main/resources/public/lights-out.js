@@ -33,9 +33,9 @@ const render = board => {
         gameOver = true;
     }
     if (gameOver) {
-        console.log("G A M E O V E R " + c);
-        c++;
-        //endAnimation();
+        //console.log("G A M E O V E R " + c);
+        //c++;
+        endAnimation();
         newGame();
     }
 };
@@ -48,8 +48,7 @@ const move = async (row, column) => {
 
 const cheat = async () => {
     if (!gameOver) {
-        await
-        fetch(`/games/${gameIdentifier}/cheat`, {method: "PUT"});
+        await fetch(`/games/${gameIdentifier}/cheat`, {method: "PUT"});
     }
 };
 
@@ -58,20 +57,9 @@ const sleep = duration => new Promise(resolve => window.setTimeout(resolve, dura
 const endAnimation = async() => {
     console.log("G A M E O V E R " + c);
     c++;
-
-    let count = 1;
-    while (count < 6) {
-        for (i = 0; i < 5; i++) {
-            for (j = 0; j < 5; j++) {
-                document.getElementById(`button-${i}-${j}`).style.fill = "rgb(131, 148, 150)";
-            }
-        }
-        count++;
-        await sleep(20000);
-        for (i = 0; i < 5; i++) {
-            for (j = 0; j < 5; j++) {
-                document.getElementById(`button-${i}-${j}`).style.fill = "rgb(211, 54, 130)";
-            }
+    for (i = 0; i < 5; i++) {
+        for (j = 0; j < 5; j++) {
+            document.getElementById(`button-${i}-${j}`).style.fill = ["rgb(131, 148, 150)", "rgb(211, 54, 130)"][1];
         }
     }
 };
