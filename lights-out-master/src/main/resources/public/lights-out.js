@@ -1,6 +1,6 @@
 let gameIdentifier = null;
 let gameOver = false;
-let c = 1;
+let playCount = 0;
 
 window.addEventListener("load", async () => {
     document.querySelector("body").innerHTML = await (await fetch("/lights-out.svg")).text();
@@ -14,20 +14,25 @@ window.addEventListener("load", async () => {
 
 const newGame = async () => {
     gameOver = false;
+    c = 1;
     gameIdentifier = await (await fetch("/games", { method: "POST" })).text();
     location.hash = gameIdentifier;
+    playCount = 0;
+    poll();
 };
 
 const poll = async () => {
     if (gameIdentifier !== null) {
-        if (true) { //if game exists, then render. if not, start a new game
-            render((await (await fetch(`/games/${gameIdentifier}`)).json()).board);
-        } else {
+        if ((await fetch(`/games/${gameIdentifier}`)).status == 404) { //if game exists, then render. if not, start a new game.
             newGame();
+        } else {
+            render((await (await fetch(`/games/${gameIdentifier}`)).json()).board);
         }
     }
-    await sleep(200);
-    poll();
+    if (!gameOver) {
+        await sleep(200);
+        poll();
+    }
 };
 
 const render = board => {
@@ -42,10 +47,7 @@ const render = board => {
     }
     if (count == 25) {
         gameOver = true;
-    }
-    if (gameOver) {
         endAnimation();
-        newGame();
     }
 };
 
@@ -63,14 +65,20 @@ const cheat = async () => {
 
 const sleep = duration => new Promise(resolve => window.setTimeout(resolve, duration));
 
-const endAnimation = async() => {
-    var audio = new Audio('johncena.mp3');
-    audio.play()
-    console.log("G A M E O V E R " + c);
-    c++;
+const endAnimation = async() =>
+{
+    if (playCount == 0) {
+        var audio = new Audio('johncena.mp3'); //audio playing twice
+        audio.play();
+        audio.onended = function () {
+            newGame()
+        };
+        playCount++;
+    }
+
     for (i = 0; i < 5; i++) {
         for (j = 0; j < 5; j++) {
-            document.getElementById(`button-${i}-${j}`).style.fill = ["rgb(131, 148, 150)", "rgb(211, 54, 130)"][1];
+            document.getElementById(`button-${i}-${j}`).style.fill = "rgb(131, 148, 150)";
         }
     }
 };
