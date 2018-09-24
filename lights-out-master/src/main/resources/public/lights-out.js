@@ -4,17 +4,28 @@ let c = 1;
 
 window.addEventListener("load", async () => {
     document.querySelector("body").innerHTML = await (await fetch("/lights-out.svg")).text();
-    newGame();
+    if (location.hash == "") {
+        newGame();
+    } else {
+        gameIdentifier = location.hash.substr(1);
+    }
     poll();
 });
 
 const newGame = async () => {
     gameOver = false;
     gameIdentifier = await (await fetch("/games", { method: "POST" })).text();
+    location.hash = gameIdentifier;
 };
 
 const poll = async () => {
-    if (gameIdentifier !== null) render((await (await fetch(`/games/${gameIdentifier}`)).json()).board);
+    if (gameIdentifier !== null) {
+        if (true) { //if game exists, then render. if not, start a new game
+            render((await (await fetch(`/games/${gameIdentifier}`)).json()).board);
+        } else {
+            newGame();
+        }
+    }
     await sleep(200);
     poll();
 };
@@ -33,8 +44,6 @@ const render = board => {
         gameOver = true;
     }
     if (gameOver) {
-        //console.log("G A M E O V E R " + c);
-        //c++;
         endAnimation();
         newGame();
     }
@@ -55,6 +64,8 @@ const cheat = async () => {
 const sleep = duration => new Promise(resolve => window.setTimeout(resolve, duration));
 
 const endAnimation = async() => {
+    var audio = new Audio('johncena.mp3');
+    audio.play()
     console.log("G A M E O V E R " + c);
     c++;
     for (i = 0; i < 5; i++) {
